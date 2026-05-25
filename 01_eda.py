@@ -7,17 +7,17 @@ import pandas as pd
 import numpy as np
 import os, pickle
 
-# ── Paths ─────────────────────────────────────────────────────────────────
+#Paths
 DATA_PATH = "data/bank-additional-full.csv"
 OUT_DIR   = "outputs"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# ── Load ──────────────────────────────────────────────────────────────────
+#Load
 df = pd.read_csv(DATA_PATH, sep=";")
 y  = (df["y"] == "yes").astype(int)
 print(f"Dataset: {len(df):,} rows x {len(df.columns)} columns")
 
-# ── Class Distribution ─────────────────────────────────────────────────────
+#Class Distribution
 n_yes = int(y.sum())
 n_no  = int((y == 0).sum())
 ratio = round(n_no / n_yes, 1)
