@@ -25,7 +25,7 @@ thresholds = np.arange(0.01, 1.00, 0.01)
 total_positives = int(y_test.sum())
 
 
-# -- Strategy 1: default threshold 0.50 --
+#Strategy 1: default threshold 0.50
 t = 0.50
 pred = (model_prob >= t).astype(int)
 tp = int(((pred == 1) & (y_test == 1)).sum())
@@ -42,8 +42,8 @@ s_default = {
 }
 
 
-# -- Strategy 2: one global profit-maximizing threshold --
-# Δοκιμάζουμε όλα τα thresholds και κρατάμε αυτό με το μεγαλύτερο κέρδος
+#Strategy 2: one global profit-maximizing threshold
+#Εδώ επιλέγω threshold με βάση το επιχειρηματικό κέρδος και όχι το accuracy.
 best_global_t = thresholds[0]
 best_global_profit = None
 for t in thresholds:
@@ -70,7 +70,7 @@ s_global = {
 }
 
 
-# -- Strategy 3: threshold that maximizes F1-score --
+#Strategy 3: threshold that maximizes F1-score
 best_f1_t = thresholds[0]
 best_f1_value = None
 for t in thresholds:
@@ -95,7 +95,7 @@ s_maxf1 = {
 }
 
 
-# -- Strategy 4: one profit-maximizing threshold per cluster --
+#Strategy 4: one profit-maximizing threshold per cluster
 cluster_thresholds = {}
 cluster_threshold_results = {}
 total_profit = 0
@@ -107,7 +107,7 @@ for c in sorted(np.unique(test_clusters)):
     y_c = y_test[mask]
     prob_c = model_prob[mask]
 
-    # Βρίσκουμε το threshold με το μεγαλύτερο κέρδος για αυτό το cluster
+    #Κάθε cluster παίρνει δικό του threshold, γιατί έχει διαφορετική συμπεριφορά απόκρισης.
     best_t = thresholds[0]
     best_t_profit = None
     for t in thresholds:

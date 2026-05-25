@@ -5,13 +5,13 @@ Simple Streamlit demo for the Bank Telemarketing DSS.
 import pickle
 
 import numpy as np
-import streamlit as st
+import streamlit as st  # type: ignore[reportMissingImports]
 
 
 st.set_page_config(page_title="Bank Telemarketing DSS", layout="wide")
 
 
-# Φόρτωση των artifacts απευθείας (απλό, χωρίς caching)
+#Δεν χρησιμοποιώ caching, ώστε να διαβάζω πάντα τα πιο πρόσφατα artifacts του pipeline.
 try:
     with open("outputs/artifacts.pkl", "rb") as f:
         art = pickle.load(f)
@@ -122,13 +122,13 @@ if st.button("Πρόβλεψη", type="primary"):
     cat_cols = art["cat_cols"]
     edu_order = art["edu_order"]
 
-    # education: από string σε αριθμό (ordinal encoding)
+    #Το education κωδικοποιείται ακριβώς όπως στο preprocessing για πλήρη συνέπεια.
     edu_map = {}
     for i in range(len(edu_order)):
         edu_map[edu_order[i]] = i
     edu_numeric = edu_map.get(customer.get("education", "unknown"), len(edu_order) - 1)
 
-    # Φτιάχνουμε τη γραμμή features με τη σειρά που περιμένει το μοντέλο
+    #Χτίζω το row με τη σειρά του feature_names, όπως εκπαιδεύτηκε το μοντέλο.
     row = np.zeros(len(feature_names))
     for i in range(len(feature_names)):
         feature = feature_names[i]
@@ -138,7 +138,7 @@ if st.button("Πρόβλεψη", type="primary"):
             else:
                 row[i] = customer.get(feature, 0)
         else:
-            # one-hot: βρες σε ποια κατηγορική στήλη ανήκει το feature
+            #Αντιστοίχιση one-hot με βάση το πρόθεμα της αρχικής κατηγορικής στήλης.
             for col in cat_cols:
                 prefix = col + "_"
                 if feature.startswith(prefix):
@@ -152,12 +152,12 @@ if st.button("Πρόβλεψη", type="primary"):
     X = row.reshape(1, -1)
     X_scaled = art["scaler"].transform(X)
 
-    # Πρόβλεψη πιθανότητας από το τελικό μοντέλο
+    #Το τελικό μοντέλο διαβάζεται από τα artifacts, χωρίς hardcoded επιλογή.
     model_name = art.get("decision_model", "XGB")
     model = art["models"][model_name]
     probability = model.predict_proba(X_scaled)[0, 1]
 
-    # Σε ποιο cluster ανήκει ο πελάτης και ποιο threshold ισχύει
+    #Πρώτα υπολογίζω το cluster και μετά εφαρμόζω το αντίστοιχο threshold.
     cluster_input = X_scaled[:, art["cluster_feature_idx"]]
     cluster = int(art["kmeans"].predict(cluster_input)[0])
     threshold = art["cluster_thresholds"][cluster]

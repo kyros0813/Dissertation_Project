@@ -5,14 +5,10 @@
 
 import os
 import pickle
-import warnings
-import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, confusion_matrix
 from xgboost import XGBClassifier
-
-warnings.filterwarnings("ignore")
 
 OUT_DIR = "outputs"
 ART_PATH = os.path.join(OUT_DIR, "artifacts.pkl")
@@ -28,6 +24,7 @@ X_test_sc = art["X_test_sc"]
 y_train = art["y_train"]
 y_test = art["y_test"]
 
+#Ο λόγος ανισορροπίας περνάει στο XGB ώστε να δίνει σωστό βάρος στη θετική κλάση.
 imb_ratio = (y_train == 0).sum() / (y_train == 1).sum()
 print(f"Class imbalance ratio: {imb_ratio:.1f}:1")
 
@@ -94,7 +91,7 @@ for name, model in models.items():
     print(f"{name:<6} {test_auc:>10.4f} {pr_auc:>8.4f} {f1:>7.4f}")
 
 
-# XGBoost χρησιμοποιείται για threshold optimization και SHAP (λειτουργεί καλύτερα με SHAP TreeExplainer)
+#Το XGB μένει ως τελικό μοντέλο για βελτιστοποίηση threshold και ανάλυση SHAP.
 decision_model = "XGB"
 
 art["models"]         = {decision_model: trained_models[decision_model]}
@@ -113,6 +110,7 @@ except FileNotFoundError:
 all_results["classification"] = classification_results
 all_results["decision_model"] = decision_model
 
+#Στο results.pkl κρατάω μόνο τα απαραίτητα για ανάλυση και γραφήματα.
 with open(RES_PATH, "wb") as f:
     pickle.dump(all_results, f)
 

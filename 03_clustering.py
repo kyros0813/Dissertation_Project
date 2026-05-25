@@ -12,7 +12,7 @@ from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_har
 DATA_PATH = "data/bank-additional-full.csv"
 OUT_DIR   = "outputs"
 
-# ── Load ──────────────────────────────────────────────────────────────────
+#Load
 art_path = os.path.join(OUT_DIR, "artifacts.pkl")
 with open(art_path, "rb") as f:
     art = pickle.load(f)
@@ -26,7 +26,7 @@ cluster_feature_idx = art["cluster_feature_idx"]
 X_train_cl = X_train_sc[:, cluster_feature_idx]
 X_test_cl  = X_test_sc[:,  cluster_feature_idx]
 
-# ── Evaluate K=2..8 ───────────────────────────────────────────────────────
+#Evaluate K=2..8
 print("K-Means evaluation:")
 print(f"{'K':<4} {'Silhouette':>12} {'Davies-Bouldin':>16} {'Calinski-Harabasz':>20}")
 print("-" * 55)
@@ -41,14 +41,14 @@ for k in range(2, 9):
     clustering_metrics[k] = {"silhouette": sil, "davies_bouldin": db, "calinski_harabasz": ch}
     print(f"K={k}  {sil:>12}  {db:>16}  {ch:>20}")
 
-# ── Fit final K=4 ─────────────────────────────────────────────────────────
+#Fit final K=4
 print("\nFitting K=4 (final model)...")
 km4 = KMeans(n_clusters=4, random_state=42, n_init=10)
 train_clusters = km4.fit_predict(X_train_cl)
 test_clusters  = km4.predict(X_test_cl)
 
-# ── Cluster profiles ───────────────────────────────────────────────────────
-# Φορτώνουμε το original dataframe για readable profiles
+#Cluster profiles
+#Φορτώνω τα αρχικά δεδομένα μόνο για να βγάλω κατανοητά προφίλ των clusters.
 df_orig = pd.read_csv(DATA_PATH, sep=";")
 idx_train = art["idx_train"]
 idx_test  = art["idx_test"]
@@ -98,10 +98,8 @@ for c in range(4):
     test_cluster_stats[c] = {"n": n_c, "pct": pct, "response_rate": rate}
     print(f"  C{c}: N={n_c:,} ({pct:.1f}%)  Response={rate:.1f}%")
 
-# ── Save ───────────────────────────────────────────────────────────────────
-# Αποθηκεύουμε μόνο ό,τι χρειάζεται από τα επόμενα βήματα:
-#   kmeans         → app.py (για cluster assignment νέου πελάτη)
-#   test_clusters  → 05_threshold.py, 06_shap.py
+#Save
+#Αποθηκεύω μόνο όσα χρειάζονται τα επόμενα βήματα και η εφαρμογή.
 art["kmeans"]        = km4
 art["test_clusters"] = test_clusters
 

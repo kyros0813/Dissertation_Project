@@ -14,7 +14,7 @@ OUT_DIR = "outputs"
 FIG_DIR = os.path.join(OUT_DIR, "figures")
 os.makedirs(FIG_DIR, exist_ok=True)
 
-# ── Load ──────────────────────────────────────────────────────────────────
+#Load
 with open(os.path.join(OUT_DIR, "results.pkl"), "rb") as f:
     res = pickle.load(f)
 
@@ -36,15 +36,14 @@ try:
 except OSError:
     plt.style.use("seaborn-whitegrid")
 
-C4 = ["#2196F3", "#FF9800", "#4CAF50", "#9C27B0"]   # one colour per cluster
+C4 = ["#2196F3", "#FF9800", "#4CAF50", "#9C27B0"]   #one colour per cluster
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 1. EDA overview
-# ─────────────────────────────────────────────────────────────────────────────
+#Εδώ χρησιμοποιώ τα ήδη αποθηκευμένα αποτελέσματα από results/artifacts, χωρίς νέα εκπαίδευση μοντέλου.
+#EDA overview
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 fig.suptitle("Exploratory Data Analysis", fontsize=16, fontweight="bold")
 
-# 1a: class distribution
+#class distribution
 ax = axes[0, 0]
 labels = ["NO", "YES"]
 sizes  = [eda["n_no"], eda["n_yes"]]
@@ -57,10 +56,10 @@ for bar, s in zip(bars, sizes):
             f"{s:,}\n({s / eda['n_total'] * 100:.1f}%)",
             ha="center", fontsize=10)
 
-# 1b: correlation with target
+#correlation with target
 ax = axes[0, 1]
 corr = eda["correlations"]
-# Ταξινόμηση των συσχετίσεων κατά τιμή (αύξουσα), χωρίς lambda
+#Ταξινόμηση των συσχετίσεων κατά τιμή (αύξουσα), χωρίς lambda
 pairs = []
 for name in corr:
     pairs.append([corr[name], name])
@@ -80,7 +79,7 @@ for i, v in enumerate(vals_c):
             f"{v:+.3f}", va="center",
             ha="left" if v >= 0 else "right", fontsize=8)
 
-# 1c: response rate by month
+#response rate by month
 ax = axes[1, 0]
 month_order = ["jan", "feb", "mar", "apr", "may", "jun",
                "jul", "aug", "sep", "oct", "nov", "dec"]
@@ -97,7 +96,7 @@ for bar, r in zip(bars, rates_m):
     ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
             f"{r:.1f}%", ha="center", fontsize=8)
 
-# 1d: response rate by poutcome
+#response rate by poutcome
 ax = axes[1, 1]
 po = eda["poutcome_stats"]
 po_names = list(po.keys())
@@ -117,9 +116,7 @@ fig.savefig(os.path.join(FIG_DIR, "01_eda.png"), dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("[OK] 01_eda.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. Clustering metrics (K=2..8)
-# ─────────────────────────────────────────────────────────────────────────────
+#Clustering metrics (K=2..8)
 metrics_k = clust["metrics"]
 ks  = sorted(metrics_k.keys())
 sil = [metrics_k[k]["silhouette"]        for k in ks]
@@ -151,14 +148,12 @@ fig.savefig(os.path.join(FIG_DIR, "02_clustering_metrics.png"), dpi=150, bbox_in
 plt.close(fig)
 print("[OK] 02_clustering_metrics.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. Cluster profiles
-# ─────────────────────────────────────────────────────────────────────────────
+#Cluster profiles
 profiles = clust["profiles"]
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 fig.suptitle("Customer Segments (K=4) — Profiles", fontsize=14, fontweight="bold")
 
-# 3a: response rate per cluster
+#response rate per cluster
 ax = axes[0]
 c_rates = [profiles[c]["response_rate"] for c in range(4)]
 c_ns    = [profiles[c]["n"]             for c in range(4)]
@@ -170,13 +165,13 @@ for bar, r, n in zip(bars, c_rates, c_ns):
     ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
             f"{r:.1f}%\n(n={n:,})", ha="center", fontsize=9)
 
-# 3b: characteristics heatmap
+#characteristics heatmap
 ax = axes[1]
 char_keys   = ["avg_age", "single_pct", "married_pct",
                "poutcome_success_pct", "housing_no_pct"]
 char_labels = ["Avg Age", "Single %", "Married %",
                "Prev Success %", "No Housing %"]
-# Πίνακας 4x5 με τα χαρακτηριστικά κάθε cluster (αντί για nested comprehension)
+#Τα χαρακτηριστικά κάθε cluster 
 matrix = np.zeros((4, len(char_keys)))
 for c in range(4):
     for j in range(len(char_keys)):
@@ -203,9 +198,7 @@ fig.savefig(os.path.join(FIG_DIR, "03_cluster_profiles.png"), dpi=150, bbox_inch
 plt.close(fig)
 print("[OK] 03_cluster_profiles.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 4. Model comparison (grouped bar)
-# ─────────────────────────────────────────────────────────────────────────────
+#Model comparison (grouped bar)
 model_names   = list(clf.keys())
 metric_keys   = ["test_auc", "prauc", "f1"]
 metric_labels = ["Test AUC", "PR-AUC", "F1"]
@@ -235,9 +228,8 @@ fig.savefig(os.path.join(FIG_DIR, "04_model_comparison.png"), dpi=150, bbox_inch
 plt.close(fig)
 print("[OK] 04_model_comparison.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 5. ROC curves
-# ─────────────────────────────────────────────────────────────────────────────
+
+#ROC curves
 fig, ax = plt.subplots(figsize=(8, 7))
 roc_colors = ["#2196F3", "#FF9800", "#4CAF50"]
 
@@ -252,17 +244,16 @@ ax.set_xlabel("False Positive Rate", fontsize=12)
 ax.set_ylabel("True Positive Rate", fontsize=12)
 ax.set_title("ROC Curves — All Models", fontsize=14, fontweight="bold")
 ax.legend(loc="lower right", fontsize=11)
-ax.set_xlim([0, 1])
-ax.set_ylim([0, 1.02])
+ax.set_xlim((0.0, 1.0))
+ax.set_ylim((0.0, 1.02))
 
 plt.tight_layout()
 fig.savefig(os.path.join(FIG_DIR, "05_roc_curves.png"), dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("[OK] 05_roc_curves.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 6. Confusion matrices
-# ─────────────────────────────────────────────────────────────────────────────
+
+#Confusion matrices
 fig, axes = plt.subplots(1, len(model_names), figsize=(14, 5))
 fig.suptitle("Confusion Matrices (threshold = 0.50)", fontsize=14, fontweight="bold")
 
@@ -290,9 +281,8 @@ fig.savefig(os.path.join(FIG_DIR, "06_confusion_matrices.png"), dpi=150, bbox_in
 plt.close(fig)
 print("[OK] 06_confusion_matrices.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 7. Threshold strategy comparison
-# ─────────────────────────────────────────────────────────────────────────────
+
+#Threshold strategy comparison
 s_labels = [
     "Default\nt=0.50",
     f"Global\nt*={thr['global']['threshold']}",
@@ -328,16 +318,16 @@ fig.savefig(os.path.join(FIG_DIR, "07_threshold_strategies.png"), dpi=150, bbox_
 plt.close(fig)
 print("[OK] 07_threshold_strategies.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 8. SHAP — global top-15
-# ─────────────────────────────────────────────────────────────────────────────
+
+#SHAP — global top-15
+
 global_shap = shap_r["global_top15"]
 sh_names = [e["feature"]       for e in global_shap]
 sh_vals  = [e["mean_abs_shap"] for e in global_shap]
 
 fig, ax = plt.subplots(figsize=(10, 7))
 n = len(sh_names)
-colors_sh = plt.cm.Blues(np.linspace(0.35, 0.85, n))[::-1]
+colors_sh = plt.get_cmap("Blues")(np.linspace(0.35, 0.85, n))[::-1]
 ax.barh(range(n), sh_vals, color=colors_sh)
 ax.set_yticks(range(n))
 ax.set_yticklabels(sh_names, fontsize=10)
@@ -353,9 +343,9 @@ fig.savefig(os.path.join(FIG_DIR, "08_shap_global.png"), dpi=150, bbox_inches="t
 plt.close(fig)
 print("[OK] 08_shap_global.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 9. SHAP — per-cluster top-5
-# ─────────────────────────────────────────────────────────────────────────────
+
+#SHAP — per-cluster top-5
+
 per_cluster = shap_r["per_cluster_top5"]
 cluster_ids = sorted(per_cluster.keys())
 
@@ -383,5 +373,5 @@ fig.savefig(os.path.join(FIG_DIR, "09_shap_per_cluster.png"), dpi=150, bbox_inch
 plt.close(fig)
 print("[OK] 09_shap_per_cluster.png")
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 print(f"\n[OK] All 9 figures saved to {FIG_DIR}/")

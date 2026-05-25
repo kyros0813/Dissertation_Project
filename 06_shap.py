@@ -2,7 +2,6 @@
 
 import os
 import pickle
-
 import numpy as np
 import xgboost as xgb
 
@@ -28,10 +27,10 @@ sample_size = min(2000, len(X_test_sc))
 idx_sample = np.random.choice(len(X_test_sc), size=sample_size, replace=False)
 X_sample = X_test_sc[idx_sample]
 
-if decision_model != "XGB":
-    raise ValueError("This simplified SHAP script expects XGB as the decision model.")
+# if decision_model != "XGB":
+#     raise ValueError("Εxpects XGB as the decision model.")
 
-# The last SHAP column is the bias term, so it is excluded.
+#Η τελευταία στήλη του pred_contribs είναι ο σταθερός όρος (bias), όχι επίδραση χαρακτηριστικού.
 dmatrix = xgb.DMatrix(X_sample, feature_names=feature_names)
 shap_values = model.get_booster().predict(dmatrix, pred_contribs=True)[:, :-1]
 

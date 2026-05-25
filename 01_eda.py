@@ -26,7 +26,8 @@ print(f"  YES: {n_yes:,} ({n_yes/len(df)*100:.2f}%)")
 print(f"  NO:  {n_no:,}  ({n_no/len(df)*100:.2f}%)")
 print(f"  Imbalance ratio 1:{ratio}")
 
-# ── Correlations with target ───────────────────────────────────────────────
+#Correlations with target
+#Ελέγχω πρώτα τις βασικές αριθμητικές μεταβλητές για μια γρήγορη αρχική εικόνα.
 num_cols = ["age", "campaign", "pdays", "previous",
             "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed"]
 print("\nCorrelation with target:")
@@ -36,20 +37,21 @@ for col in num_cols:
     correlations[col] = r
     print(f"  {col:<22}: r = {r:+.3f}")
 
-# ── Multicollinearity ──────────────────────────────────────────────────────
+#Multicollinearity
 macro_cols = ["euribor3m", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "nr.employed"]
 macro_corr = df[macro_cols].corr()
+macro_corr_values = macro_corr.to_numpy(dtype=float)
 print("\nMulticollinearity among macro features (|r| > 0.70):")
 high_corr = {}
 for i in range(len(macro_cols)):
     for j in range(i + 1, len(macro_cols)):
-        r = round(float(macro_corr.iloc[i, j]), 3)
+        r = round(float(macro_corr_values[i, j]), 3)
         if abs(r) > 0.70:
             pair = f"{macro_cols[i]} <-> {macro_cols[j]}"
             high_corr[pair] = r
             print(f"  {pair}: r = {r:.3f}")
 
-# ── Month response rates ───────────────────────────────────────────────────
+#Month response rates
 print("\nResponse rate by month:")
 month_stats = {}
 for month, grp in df.groupby("month"):
@@ -58,7 +60,7 @@ for month, grp in df.groupby("month"):
     month_stats[month] = {"n": n, "rate": rate}
     print(f"  {month:<5}: n={n:>6,}  rate={rate:.1f}%")
 
-# ── Contact channel ────────────────────────────────────────────────────────
+#Contact channel
 print("\nResponse rate by contact type:")
 contact_stats = {}
 for ctype, grp in df.groupby("contact"):
@@ -67,7 +69,7 @@ for ctype, grp in df.groupby("contact"):
     contact_stats[ctype] = {"n": n, "rate": rate}
     print(f"  {ctype:<12}: n={n:>6,}  rate={rate:.1f}%")
 
-# ── Previous campaign outcome ──────────────────────────────────────────────
+#Previous campaign outcome
 print("\nResponse rate by poutcome:")
 poutcome_stats = {}
 for po, grp in df.groupby("poutcome"):
@@ -76,7 +78,7 @@ for po, grp in df.groupby("poutcome"):
     poutcome_stats[po] = {"n": n, "rate": rate}
     print(f"  {po:<15}: n={n:>6,}  rate={rate:.1f}%")
 
-# ── Unknown value counts ───────────────────────────────────────────────────
+#Unknown value counts
 print("\nUnknown values per categorical feature:")
 unknown_counts = {}
 for col in ["job", "marital", "education", "default", "housing", "loan"]:
@@ -86,7 +88,7 @@ for col in ["job", "marital", "education", "default", "housing", "loan"]:
     if n > 0:
         print(f"  {col:<12}: {n:>5,} ({pct:.1f}%)")
 
-# ── Macro feature ranges ───────────────────────────────────────────────────
+#Macro feature ranges
 print("\nMacro feature ranges:")
 macro_ranges = {}
 for col in macro_cols:
@@ -95,7 +97,7 @@ for col in macro_cols:
     macro_ranges[col] = {"min": mn, "max": mx}
     print(f"  {col:<22}: [{mn}, {mx}]")
 
-# ── Save results ───────────────────────────────────────────────────────────
+#Save results
 eda_results = {
     "n_total": len(df),
     "n_yes": n_yes,
@@ -112,7 +114,7 @@ eda_results = {
 }
 
 results_path = os.path.join(OUT_DIR, "results.pkl")
-# Φόρτωσε αν υπάρχει ήδη (για να μην σβήσει τα άλλα βήματα)
+#Αν υπάρχει ήδη αρχείο αποτελεσμάτων, το ενημερώνω χωρίς να σβήνω τα υπόλοιπα στάδια.
 if os.path.exists(results_path):
     with open(results_path, "rb") as f:
         all_results = pickle.load(f)
